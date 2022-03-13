@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  web:
+    build: .
+    command: bash -c "gunicorn run:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:6110"
+    env_file: .env
+    volumes:
+      - .:/app
+    ports:
+      - 6110:6110
