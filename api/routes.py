@@ -56,4 +56,9 @@ async def async_scenario1():
             'price': data['usd_rub_moex']['value'],
             'updated': f"{now_timestamp - data['usd_rub_moex']['timestamp']} seconds ago"
         },
+        'oldest_quote': max(
+            now_timestamp - data['buy_usdt_rub_binance']['timestamp'],
+            now_timestamp - data['sell_usdt_usd_binance']['timestamp'],
+            now_timestamp - data['usd_rub_moex']['timestamp']
+        )
     }
