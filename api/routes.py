@@ -3,7 +3,7 @@ import datetime
 import asyncio
 from fastapi import APIRouter, Depends
 
-from api.schemas import BinanceArgs
+from api.schemas import BinanceArgs, ScenarioResponse
 from config import BASE_URL
 from core.models.price import Price
 from core.prices.binance import P2PBinanceData
@@ -28,6 +28,11 @@ async def binance_data(
     return P2PBinanceData(asset=args.asset, fiat=args.fiat, trade_type=args.trade_type).get_best_offer()
 
 
+@router.get('/scenarios', tags=["scenarios"])
+async def scenarios_list():
+    return {"scenarios": [1]}
+
+
 @router.get('/scenarios/1', tags=["scenarios"])
 async def async_scenario1():
     """
@@ -40,25 +45,26 @@ async def async_scenario1():
         get_async(f'{BASE_URL}/prices/moex/usd_rub', data, 'usd_rub_moex'),
     )
     now_timestamp = int(datetime.datetime.utcnow().timestamp())
-    return {
-        'profit (percentage)': (100 / data['buy_usdt_rub_binance']['value'] *
-                                data['sell_usdt_usd_binance']['value'] *
-                                data['usd_rub_moex']['value']) - 100,
-        'buy_usdt_rub_binance': {
-            'price': data['buy_usdt_rub_binance']['value'],
-            'updated': f"{now_timestamp - data['buy_usdt_rub_binance']['timestamp']} seconds ago"
-        },
-        'sell_usdt_usd_binance': {
-            'price': data['sell_usdt_usd_binance']['value'],
-            'updated': f"{now_timestamp - data['sell_usdt_usd_binance']['timestamp']} seconds ago"
-        },
-        'usd_rub_moex': {
-            'price': data['usd_rub_moex']['value'],
-            'updated': f"{now_timestamp - data['usd_rub_moex']['timestamp']} seconds ago"
-        },
-        'oldest_quote': max(
+    return ScenarioResponse(
+        profit=(100 / data['buy_usdt_rub_binance']['value'] * data['sell_usdt_usd_binance']['value'] *
+                data['usd_rub_moex']['value']) - 100,
+        oldest_quote=max(
             now_timestamp - data['buy_usdt_rub_binance']['timestamp'],
             now_timestamp - data['sell_usdt_usd_binance']['timestamp'],
             now_timestamp - data['usd_rub_moex']['timestamp']
-        )
-    }
+        ),
+        details={
+            'buy_usdt_rub_binance': {
+                'price': data['buy_usdt_rub_binance']['value'],
+                'updated': f"{now_timestamp - data['buy_usdt_rub_binance']['timestamp']} seconds ago"
+            },
+            'sell_usdt_usd_binance': {
+                'price': data['sell_usdt_usd_binance']['value'],
+                'updated': f"{now_timestamp - data['sell_usdt_usd_binance']['timestamp']} seconds ago"
+            },
+            'usd_rub_moex': {
+                'price': data['usd_rub_moex']['value'],
+                'updated': f"{now_timestamp - data['usd_rub_moex']['timestamp']} seconds ago"
+            },
+        }
+    )

@@ -25,3 +25,9 @@ class BinanceArgs(BaseModel):
     asset: Asset
     fiat: Currency
     trade_type: TradeType
+
+
+class ScenarioResponse(BaseModel):
+    profit: float
+    oldest_quote: int
+    details: dict
