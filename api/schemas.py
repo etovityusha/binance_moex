@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic.main import BaseModel
 from pydantic.types import Enum
 
@@ -25,6 +27,7 @@ class BinanceArgs(BaseModel):
     asset: Asset
     fiat: Currency
     trade_type: TradeType
+    amount: Optional[int]
 
 
 class ScenarioResponse(BaseModel):

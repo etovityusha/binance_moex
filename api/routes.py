@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from api.schemas import BinanceArgs, ScenarioResponse
 from config import BASE_URL
 from core.models.price import Price
-from core.prices.binance import P2PBinanceData
+from core.prices.binance import P2PBinanceData, NoOfferError
 from core.prices.moex import get_usdrub_price
 from core.requests import get_async
 
@@ -22,10 +22,13 @@ async def usd_rub_moex():
 
 
 @router.get("/prices/binance/p2p/", response_model=Price, tags=["prices"])
-async def binance_data(
-        args: BinanceArgs = Depends()
-):
-    return P2PBinanceData(asset=args.asset, fiat=args.fiat, trade_type=args.trade_type).get_best_offer()
+async def binance_data(args: BinanceArgs = Depends()):
+    try:
+        return P2PBinanceData(
+            asset=args.asset, fiat=args.fiat, trade_type=args.trade_type, amount=args.amount,
+        ).get_best_offer()
+    except NoOfferError:
+        return None
 
 
 @router.get('/scenarios', tags=["scenarios"])
